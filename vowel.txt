@@ -1,0 +1,80 @@
+# The snippet of code below contains some global strings, with associated labels. It also contains a main function and a subroutine ``vowel''.
+# Using proper register conventions throughout, and providing brief comments to explain your working, do the following.
+
+
+# First, complete the subroutine ``vowel'' (fill in the '...'). This subroutine should take a single argument as input, which is an address.
+# The subroutine should return the value 1 if the byte stored at that address is associated with a lowercase vowel. Otherwise it should return a 0.
+
+
+# Second, complete the ``main'' function (fill in the '...'). This subroutine should examine every character in the global string 'str' to
+# check if it is a vowel, via calls to the subroutine ``vowel''. It should keep a running count of the number of vowels found, in the register $s1.
+# At the end, once the entire string has been processed, the provided syscall will print the contents of $s1, the total number of vowels found in the
+# test string.
+	
+
+
+	.data
+str:   .asciiz "This is a test string containing some lowercase vowels."
+
+a:     .asciiz "a"
+e:     .asciiz "e"
+i:     .asciiz "i"
+o:     .asciiz "o"
+u:     .asciiz "u"
+
+       .text
+       .globl main
+
+
+main:  la $a0,str               # second, complete the 'main' function
+				# We are not going to bother to save and 
+				# restore $s1
+				# since it is used in the main function
+	
+       add $s1,$zero,$zero      # initialize vowel count to 0
+
+loop:  lb $t8,0($a0)		# examine byte to see if it is the
+       beq $t8,$zero,print      # reached the end of the string so print $s1
+	
+       jal vowel		# call vowel
+       add $s1,$s1,$v0          # update vowel count and increment 
+       addi $a0,$a0,1		# $a0 by 1 to examine next byte
+       j loop
+
+print: li $v0,1                 # system call code for print_int
+       add $a0, $zero, $s1
+       syscall
+	
+       j Exit                   
+
+
+vowel: lb $t0,0($a0)            # load the byte from memory
+       add $v0,$zero,$zero	# initialize return value to 0
+
+       la $t1,a		        # pointer to "a"
+       lb $t1,0($t1)		# ascii value of "a" in $t1
+       la $t2,e		        # pointer to "e"
+       lb $t2,0($t2)		# ascii value of "e" in $t2
+       la $t3,i		        # pointer to "i"
+       lb $t3,0($t3)		# ascii value of "i" in $t3
+       la $t4,o		        # pointer to "o"
+       lb $t4,0($t4)		# ascii value of "o" in $t4
+       la $t5,u		        # pointer to "u"
+       lb $t5,0($t5)		# ascii value of "u" in $t5
+	
+       beq $t0,$t1,found        # char is a vowel
+       beq $t0,$t2,found        # char is a vowel
+       beq $t0,$t3,found        # char is a vowel
+       beq $t0,$t4,found        # char is a vowel
+       beq $t0,$t5,found        # char is a vowel
+
+       j done		        # all checks failed so exit subroutine
+
+found: addi $v0,$v0,1		# change $v0 to 1, since the byte is a vowel
+
+done:  jr $ra                   # end of the subroutine 'vowel'
+
+
+	
+Exit:  li $v0,10                # syscall to terminate program
+       syscall
